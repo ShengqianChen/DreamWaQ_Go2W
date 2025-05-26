@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import torch
+import torch  
 import torch.nn as nn
 from torch.distributions import Normal
 
@@ -48,7 +48,7 @@ class ActorCritic_DWAQ(nn.Module):
             self.activation,
             nn.Linear(64,128),
             self.activation,
-            nn.Linear(128,45)
+            nn.Linear(128,73)
         )
 
         self.std = nn.Parameter(init_noise_std * torch.ones(num_actions))

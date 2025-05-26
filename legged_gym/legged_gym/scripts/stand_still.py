@@ -2,6 +2,9 @@ from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 
 import isaacgym
+
+import sys
+sys.path.append("/home/hu/csq/DreamWaQ/legged_gym")
 from legged_gym.envs import *
 from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
 

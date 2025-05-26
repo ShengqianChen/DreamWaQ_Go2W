@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
-# SPDX-License-Identifier: BSD-3-Clause
+# SPDX-License-Identifier: BSD-3-Clause  
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -8,7 +8,7 @@
 # list of conditions and the following disclaimer.
 #
 # 2. Redistributions in binary form must reproduce the above copyright notice,
-# this list of conditions and the following disclaimer in the documentation
+# this list of conditions and the following disclaimer in the documentation   
 # and/or other materials provided with the distribution.
 #
 # 3. Neither the name of the copyright holder nor the names of its
@@ -249,7 +249,11 @@ class LeggedRobot(BaseTask):
         
         #self.obs_buf = torch.cat((self.obs_buf, heights), dim=-1)
         contact_forces_scale, contact_forces_shift = get_scale_shift(self.cfg.normalization.contact_force_range)
-        self.privileged_obs_buf = torch.cat((self.obs_buf,self.base_lin_vel*self.obs_scales.lin_vel,(self.contact_forces.view(self.num_envs, -1) - contact_forces_shift) * contact_forces_scale,heights),dim=-1) ## check the velocity and disturbance force part
+        self.privileged_obs_buf = torch.cat((self.obs_buf,
+                                             self.base_lin_vel*self.obs_scales.lin_vel,
+                                             (self.contact_forces.view(self.num_envs, -1) - contact_forces_shift) * contact_forces_scale,
+                                             heights),
+                                             dim=-1) ## check the velocity and disturbance force part
         ## privileged_obs_buffer shape = 4096,286
         # add noise if needed
         if self.add_noise:
@@ -1048,13 +1052,13 @@ class LeggedRobot(BaseTask):
     #     return torch.sum((torch.norm(self.contact_forces[:, self.feet_indices, :], dim=-1) -  self.cfg.rewards.max_contact_force).clip(min=0.), dim=1)
 
 
-    def _reward_smoothness(self):
-        diff = torch.square(self.joint_pos_target[:, :self.num_dof] - 2 * self.last_joint_pos_target[:, :self.num_dof] + self.last_last_joint_pos_target[:, :self.num_dof])
-        diff = diff * (self.last_actions[:, :self.num_dof] != 0)  # ignore first step
-        diff = diff * (self.slast_actions[:, :self.num_dof] != 0)  # ignore second step
-        return torch.sum(diff, dim=1)
+    # def _reward_smoothness(self):
+    #     diff = torch.square(self.joint_pos_target[:, :self.num_dof] - 2 * self.last_joint_pos_target[:, :self.num_dof] + self.last_last_joint_pos_target[:, :self.num_dof])
+    #     diff = diff * (self.last_actions[:, :self.num_dof] != 0)  # ignore first step
+    #     diff = diff * (self.slast_actions[:, :self.num_dof] != 0)  # ignore second step
+    #     return torch.sum(diff, dim=1)
     
-    def _reward_power_distribution(self):
+    def _reward_power_distribution(self):  
         power = self.torques*self.dof_vel
         return torch.var(torch.abs(power),dim=1)
     

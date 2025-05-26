@@ -27,18 +27,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
-
+  
 import time
 import os
 from collections import deque
 import statistics
-
+  
 from torch.utils.tensorboard import SummaryWriter
 import torch
 
 from rsl_rl.algorithms import PPO
 from rsl_rl.modules import ActorCritic, ActorCriticRecurrent, ActorCritic_DWAQ
-from rsl_rl.env import VecEnv
+from rsl_rl.env.__init__ import VecEnv
 
 
 class OnPolicyRunner:
@@ -47,7 +47,7 @@ class OnPolicyRunner:
                  env: VecEnv,
                  train_cfg,
                  log_dir=None,
-                 device='cpu'):
+                 device='cuda:0'):
 
         self.cfg=train_cfg["runner"]
         self.alg_cfg = train_cfg["algorithm"]

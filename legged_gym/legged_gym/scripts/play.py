@@ -28,12 +28,14 @@
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
 
-from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
-
+import sys  
+sys.path.append("/home/hu/csq/DreamWaQ/legged_gym")
+import matplotlib
 import isaacgym
+from legged_gym import LEGGED_GYM_ROOT_DIR
 from legged_gym.envs import *
-from legged_gym.utils import  get_args, export_policy_as_jit, task_registry, Logger
+from legged_gym.utils import  get_args, export_policy_as_jit, task_registry , Logger
 from legged_gym.utils.helpers import export_policy_as_jit_actor,export_policy_as_jit_encoder,class_to_dict
 
 import numpy as np
@@ -87,6 +89,10 @@ def play(args):
     for i in range(10*int(env.max_episode_length)):
         actions = policy(obs.detach(),obs_hist.detach())
         obs, _, _, obs_hist, rews, dones, infos = env.step(actions.detach())
+        obs[:,6] = 0.0
+        obs[:,7] = 2.0
+        obs[:,8] = 0.0
+
         if RECORD_FRAMES:
             if i % 2:
                 filename = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', train_cfg.runner.experiment_name, 'exported', 'frames', f"{img_idx}.png")
@@ -96,45 +102,45 @@ def play(args):
             camera_position += camera_vel * env.dt
             env.set_camera(camera_position, camera_position + camera_direction)
 
-        if i < stop_state_log:
-            logger.log_states(
-                {
-                    'dof_pos_target': actions[robot_index, joint_index].item() * env.cfg.control.action_scale,
-                    'dof_pos': env.dof_pos[robot_index, joint_index].item(),
-                    'dof_vel': env.dof_vel[robot_index, joint_index].item(),
-                    'dof_torque': env.torques[robot_index, joint_index].item(),
-                    'command_x': env.commands[robot_index, 0].item(),
-                    'command_y': env.commands[robot_index, 1].item(),
-                    'command_yaw': env.commands[robot_index, 2].item(),
-                    'base_vel_x': env.base_lin_vel[robot_index, 0].item(),
-                    'base_vel_y': env.base_lin_vel[robot_index, 1].item(),
-                    'base_vel_z': env.base_lin_vel[robot_index, 2].item(),
-                    'base_vel_yaw': env.base_ang_vel[robot_index, 2].item(),
-                    'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy(),
-                    'dof_pos_0': env.dof_pos[robot_index, 0].item(),
-                    'dof_pos_1': env.dof_pos[robot_index, 1].item(),
-                    'dof_pos_2': env.dof_pos[robot_index, 2].item(),
-                    'dof_pos_3': env.dof_pos[robot_index, 3].item(),
-                    'dof_pos_4': env.dof_pos[robot_index, 4].item(),
-                    'dof_pos_5': env.dof_pos[robot_index, 5].item(),
-                    'dof_pos_6': env.dof_pos[robot_index, 6].item(),
-                    'dof_pos_7': env.dof_pos[robot_index, 7].item(),
-                    'dof_pos_8': env.dof_pos[robot_index, 8].item(),
-                    'dof_pos_9': env.dof_pos[robot_index, 9].item(),
-                    'dof_pos_10': env.dof_pos[robot_index, 10].item(),
-                    'dof_pos_11': env.dof_pos[robot_index, 11].item(),
+        # if i < stop_state_log:
+        #     logger.log_states(
+        #         {
+        #             'dof_pos_target': actions[robot_index, joint_index].item() * env.cfg.control.action_scale,
+        #             'dof_pos': env.dof_pos[robot_index, joint_index].item(),
+        #             'dof_vel': env.dof_vel[robot_index, joint_index].item(),
+        #             'dof_torque': env.torques[robot_index, joint_index].item(),
+        #             'command_x': env.commands[robot_index, 0].item(),
+        #             'command_y': env.commands[robot_index, 1].item(),
+        #             'command_yaw': env.commands[robot_index, 2].item(),
+        #             'base_vel_x': env.base_lin_vel[robot_index, 0].item(),
+        #             'base_vel_y': env.base_lin_vel[robot_index, 1].item(),
+        #             'base_vel_z': env.base_lin_vel[robot_index, 2].item(),
+        #             'base_vel_yaw': env.base_ang_vel[robot_index, 2].item(),
+        #             'contact_forces_z': env.contact_forces[robot_index, env.feet_indices, 2].cpu().numpy(),
+        #             'dof_pos_0': env.dof_pos[robot_index, 0].item(),
+        #             'dof_pos_1': env.dof_pos[robot_index, 1].item(),
+        #             'dof_pos_2': env.dof_pos[robot_index, 2].item(),
+        #             'dof_pos_3': env.dof_pos[robot_index, 3].item(),
+        #             'dof_pos_4': env.dof_pos[robot_index, 4].item(),
+        #             'dof_pos_5': env.dof_pos[robot_index, 5].item(),
+        #             'dof_pos_6': env.dof_pos[robot_index, 6].item(),
+        #             'dof_pos_7': env.dof_pos[robot_index, 7].item(),
+        #             'dof_pos_8': env.dof_pos[robot_index, 8].item(),
+        #             'dof_pos_9': env.dof_pos[robot_index, 9].item(),
+        #             'dof_pos_10': env.dof_pos[robot_index, 10].item(),
+        #             'dof_pos_11': env.dof_pos[robot_index, 11].item(),
                     
-                }
-            )
-        elif i==stop_state_log:
-            logger.plot_states()
-        if  0 < i < stop_rew_log:
-            if infos["episode"]:
-                num_episodes = torch.sum(env.reset_buf).item()
-                if num_episodes>0:
-                    logger.log_rewards(infos["episode"], num_episodes)
-        elif i==stop_rew_log:
-            logger.print_rewards()
+        #         }
+        #     )
+        # elif i==stop_state_log:
+        #     logger.plot_states()
+        # if  0 < i < stop_rew_log:
+        #     if infos["episode"]:
+        #         num_episodes = torch.sum(env.reset_buf).item()
+        #         if num_episodes>0:
+        #             logger.log_rewards(infos["episode"], num_episodes)
+        # elif i==stop_rew_log:
+        #     logger.print_rewards()
 
 if __name__ == '__main__':
     EXPORT_POLICY = True

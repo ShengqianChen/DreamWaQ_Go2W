@@ -33,7 +33,7 @@ from .base_config import BaseConfig
 class LeggedRobotCfg(BaseConfig):
     class env:
         num_envs = 4096
-        num_observations = 45
+        num_observations = 45  
         num_obs_hist = 5
         num_privileged_obs = 286 # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise 
         num_actions = 12
@@ -59,7 +59,7 @@ class LeggedRobotCfg(BaseConfig):
         max_init_terrain_level = 5 # starting curriculum state
         terrain_length = 8.
         terrain_width = 8.
-        num_rows= 10 # number of terrain rows (levels)
+        num_rows= 10 # number of terrain rows (levels)  
         num_cols = 20 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
         terrain_proportions = [0.1, 0.1, 0.35, 0.35, 0.1]
@@ -67,8 +67,8 @@ class LeggedRobotCfg(BaseConfig):
         slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
 
     class commands:
-        curriculum = False
-        max_curriculum = 1.
+        curriculum = True
+        max_curriculum = 1.5
         num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
         resampling_time = 10. # time before command are changed[s]
         heading_command = False # if true: compute ang vel command from heading error
@@ -145,18 +145,18 @@ class LeggedRobotCfg(BaseConfig):
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
             orientation = -0.2
-            #torques = -0.00001
-            #dof_vel = -0.
+            # torques = -0.00001
+            # dof_vel = -1e-7
             dof_acc = -2.5e-7
             base_height = -1.0 
             feet_air_time =  0.1
-            # collision = -1.
+            collision = -0.1
             # stumble = -0.01 
             action_rate = -0.01
-            #stand_still = -0.
+            # stand_still = -0.01
 
             joint_power=-2e-5
-            smoothness=-0.01
+            # smoothness=-0.01
             # feet_clearance=-0.01
             power_distribution=-10e-6
             # feet_clearance = -0.01
@@ -252,15 +252,15 @@ class LeggedRobotCfgPPO(BaseConfig):
     class runner:
         policy_class_name = 'ActorCritic_DWAQ'
         algorithm_class_name = 'PPO'
-        num_steps_per_env = 24 # per iteration
-        max_iterations = 3000 # number of policy updates
+        num_steps_per_env = 48 # per iteration
+        max_iterations = 30000 # number of policy updates
 
         # logging
-        save_interval = 50 # check for potential saves every this many iterations
+        save_interval = 1000 # check for potential saves every this many iterations
         experiment_name = 'test'
         run_name = ''
         # load and resume
         resume = False
-        load_run = -1 # -1 = last run
+        load_run = "May17_14-31-34_" # -1 = last run
         checkpoint = -1 # -1 = last saved model
-        resume_path = None # updated from load_run and chkpt
+        resume_path = None # updated from load_run and chkpt1
