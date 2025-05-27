@@ -1,4 +1,4 @@
-This repo contains implementation of the paper [Learning Robust Quadrupedal Locomotion With Implicit Terrain Imagination via Deep Reinforcement Learning](https://arxiv.org/abs/2301.10602) using Go2W, and is built upon the following repos:
+This repo contains implementation of the paper [Learning Robust Quadrupedal Locomotion With Implicit Terrain Imagination via Deep Reinforcement Learning](https://arxiv.org/abs/2301.10602) on Go2W, and is built upon the following repos:
 
 [go2w_rl_gym](https://github.com/ShengqianChen/go2w_rl_gym)
 
