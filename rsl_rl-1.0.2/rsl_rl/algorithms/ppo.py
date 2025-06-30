@@ -158,7 +158,7 @@ class PPO:
                 #Beta VAE loss
                 code,code_vel,decode,mean_vel,logvar_vel,mean_latent,logvar_latent = self.actor_critic.cenet_forward(obs_hist_batch)
                 
-                vel_target = prev_critic_obs_batch[:,45:48]
+                vel_target = prev_critic_obs_batch[:,73:76]
                 decode_target = obs_batch
                 vel_target.requires_grad = False
                 decode_target.requires_grad = False
