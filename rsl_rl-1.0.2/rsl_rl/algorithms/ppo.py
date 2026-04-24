@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -39,7 +39,7 @@ from rsl_rl.storage import RolloutStorage
 class PPO:
     actor_critic: ActorCritic_DWAQ
     def __init__(self,
-                 actor_critic,  
+                 actor_critic,
                  num_learning_epochs=1,
                  num_mini_batches=1,
                  clip_param=0.2,
@@ -71,8 +71,8 @@ class PPO:
         self.actor_critic = actor_critic
         self.actor_critic.to(self.device)
         self.storage = None # initialized later
-        self.vae_optimizer = optim.Adam(self.actor_critic.vae.parameters(), lr = self.vae_learning_rate) # 用于VAE优化 Add by CSQ 25/9/3
-        self.optimizer = optim.Adam(self.actor_critic.parameters(), lr = learning_rate) # 用于整个策略优化
+        self.vae_optimizer = optim.Adam(self.actor_critic.vae.parameters(), lr = self.vae_learning_rate)
+        self.optimizer = optim.Adam(self.actor_critic.parameters(), lr = learning_rate)
         self.transition = RolloutStorage.Transition()
 
         # PPO parameters
@@ -91,7 +91,7 @@ class PPO:
 
     def test_mode(self):
         self.actor_critic.test()
-    
+
     def train_mode(self):
         self.actor_critic.train()
 
@@ -110,7 +110,7 @@ class PPO:
         self.transition.critic_observations = critic_obs
         self.transition.prev_critic_obs = prev_critic_obs
         return self.transition.actions
-    
+
     def process_env_step(self, rewards, dones, infos):
         self.transition.rewards = rewards.clone()
         self.transition.dones = dones
@@ -122,7 +122,7 @@ class PPO:
         self.storage.add_transitions(self.transition)
         self.transition.clear()
         self.actor_critic.reset(dones)
-    
+
     def compute_returns(self, last_critic_obs):
         last_values= self.actor_critic.evaluate(last_critic_obs).detach()
         self.storage.compute_returns(last_values, self.gamma, self.lam)
@@ -135,7 +135,7 @@ class PPO:
         mean_autoenc_loss = 0
         mean_recons_loss = 0
         mean_vel_loss = 0
-        mean_kld_loss = 0 # 记录便于打印调试 csq 25/9/4
+        mean_kld_loss = 0
         # if self.actor_critic.is_recurrent:
         #     generator = self.storage.reccurent_mini_batch_generator(self.num_mini_batches, self.num_learning_epochs)
         # else:
@@ -163,22 +163,22 @@ class PPO:
                             self.learning_rate = max(1e-5, self.learning_rate / 1.5)
                         elif kl_mean < self.desired_kl / 2.0 and kl_mean > 0.0:
                             self.learning_rate = min(1e-2, self.learning_rate * 1.5)
-                        
+
                         for param_group in self.optimizer.param_groups:
                             param_group['lr'] = self.learning_rate
 
 
                 # #Beta VAE loss
                 # code,code_vel,decode,mean_vel,logvar_vel,mean_latent,logvar_latent = self.actor_critic.cenet_forward(obs_hist_batch)
-                
+
                 # vel_target = prev_critic_obs_batch[:,73:76]
                 # decode_target = obs_batch
                 # vel_target.requires_grad = False
                 # decode_target.requires_grad = False
-                # autoenc_loss = (nn.MSELoss()(code_vel,vel_target) + 
-                                # nn.MSELoss()(decode,decode_target) + 
+                # autoenc_loss = (nn.MSELoss()(code_vel,vel_target) +
+                                # nn.MSELoss()(decode,decode_target) +
                                 # beta*(-0.5 * torch.sum(1 + logvar_latent - mean_latent.pow(2) - logvar_latent.exp())))/self.num_mini_batches
-                # VAE 封装前写法 csq 25/9/4
+
 
                 # Surrogate loss
                 ratio = torch.exp(actions_log_prob_batch - torch.squeeze(old_actions_log_prob_batch))
@@ -210,7 +210,7 @@ class PPO:
                 mean_entropy_loss += entropy_batch.mean().item()
 
                 # Traing VAE
-                # 可以训练多次 csq 25/9/4
+
                 self.vae_optimizer.zero_grad()
                 vae_loss_dict = self.actor_critic.vae.loss_fn(obs_hist_batch, obs_batch, critic_obs_batch[:,73:76], self.kl_weight)
                 valid = (dones_batch == 0).squeeze()
@@ -221,7 +221,7 @@ class PPO:
                 with torch.no_grad():
                     recons_loss = torch.mean(vae_loss_dict['recons_loss'][valid])
                     vel_loss = torch.mean(vae_loss_dict['vel_loss'][valid])
-                    kld_loss = torch.mean(vae_loss_dict['kld_loss'][valid]) 
+                    kld_loss = torch.mean(vae_loss_dict['kld_loss'][valid])
 
                 mean_recons_loss += recons_loss.item()
                 mean_vel_loss += vel_loss.item()

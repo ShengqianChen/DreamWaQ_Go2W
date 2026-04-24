@@ -7,7 +7,7 @@ class MotorMode:
     PR = 0  # Series Control for Pitch/Roll Joints
     AB = 1  # Parallel Control for A/B Joints
 
-# 阻尼模式  
+
 def create_damping_cmd(cmd: Union[LowCmdGo, LowCmdHG]):
     size = len(cmd.motor_cmd)
     for i in range(size):
@@ -17,7 +17,7 @@ def create_damping_cmd(cmd: Union[LowCmdGo, LowCmdHG]):
         cmd.motor_cmd[i].kd = 8
         cmd.motor_cmd[i].tau = 0
 
-# 零力矩模式
+
 def create_zero_cmd(cmd: Union[LowCmdGo, LowCmdHG]):
     size = len(cmd.motor_cmd)
     for i in range(size):
@@ -40,7 +40,7 @@ def init_cmd_hg(cmd: LowCmdHG, mode_machine: int, mode_pr: int):
         cmd.motor_cmd[i].kd = 0
         cmd.motor_cmd[i].tau = 0
 
-# 命令参数初始化
+
 def init_cmd_go(cmd: LowCmdGo):
     cmd.head[0] = 0xFE
     cmd.head[1] = 0xEF

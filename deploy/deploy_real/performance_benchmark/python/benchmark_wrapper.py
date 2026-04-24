@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GO2W Python 部署性能测量包装器（简化版 - 无资源监控）
+GO2W Python deployment benchmark wrapper (lightweight, no resource monitor).
 """
 
 import time
@@ -13,12 +13,12 @@ from typing import List, Dict, Optional
 
 @dataclass
 class TimingStats:
-    """统计数据结构"""
+    """Container for timing statistics."""
     samples: List[float] = field(default_factory=list)
-    
+
     def add(self, value: float):
         self.samples.append(value)
-    
+
     def get_stats(self) -> Dict:
         if not self.samples:
             return {"mean": 0, "std": 0, "min": 0, "max": 0, "count": 0, "percentile_99": 0}
@@ -35,14 +35,14 @@ class TimingStats:
 
 @dataclass
 class ControlQualityMetrics:
-    """控制质量指标"""
+    """Control quality metrics."""
     target_positions: List[List[float]] = field(default_factory=list)
     actual_positions: List[List[float]] = field(default_factory=list)
-    
+
     def add_sample(self, target: np.ndarray, actual: np.ndarray):
         self.target_positions.append(target.tolist())
         self.actual_positions.append(actual.tolist())
-    
+
     def get_tracking_error(self) -> Dict:
         if not self.target_positions:
             return {"mean_error": 0, "max_error": 0}
@@ -57,8 +57,8 @@ class ControlQualityMetrics:
 
 
 class PerformanceMonitor:
-    """性能监控器（简化版）"""
-    
+    """Lightweight performance monitor."""
+
     def __init__(self):
         self.loop_time = TimingStats()
         self.inference_time = TimingStats()
@@ -66,53 +66,53 @@ class PerformanceMonitor:
         self.actor_time = TimingStats()
         self.comm_send_time = TimingStats()
         self.control_quality = ControlQualityMetrics()
-        
+
         self._loop_start = 0
         self._inference_start = 0
         self._encoder_start = 0
         self._actor_start = 0
         self._comm_start = 0
-    
-    # ========== 计时器方法 ==========
+
+
     def start_loop(self):
         self._loop_start = time.perf_counter()
-    
+
     def end_loop(self):
         self.loop_time.add((time.perf_counter() - self._loop_start) * 1000)
-    
+
     def start_inference(self):
         self._inference_start = time.perf_counter()
-    
+
     def end_inference(self):
         self.inference_time.add((time.perf_counter() - self._inference_start) * 1000)
-    
+
     def start_encoder(self):
         self._encoder_start = time.perf_counter()
-    
+
     def end_encoder(self):
         self.encoder_time.add((time.perf_counter() - self._encoder_start) * 1000)
-    
+
     def start_actor(self):
         self._actor_start = time.perf_counter()
-    
+
     def end_actor(self):
         self.actor_time.add((time.perf_counter() - self._actor_start) * 1000)
-    
+
     def start_comm_send(self):
         self._comm_start = time.perf_counter()
-    
+
     def end_comm_send(self):
         self.comm_send_time.add((time.perf_counter() - self._comm_start) * 1000)
-    
+
     def record_control_quality(self, target_pos: np.ndarray, actual_pos: np.ndarray):
         self.control_quality.add_sample(target_pos, actual_pos)
-    
-    # 保留空方法以保持兼容性
+
+
     def record_resource_usage(self):
         pass
-    
+
     def get_results(self) -> Dict:
-        """获取所有结果"""
+        """Return all benchmark results."""
         return {
             "timing": {
                 "loop_time_ms": self.loop_time.get_stats(),
@@ -128,22 +128,22 @@ class PerformanceMonitor:
                 "total_samples": self.loop_time.get_stats()["count"]
             }
         }
-    
+
     def save_results(self, filepath: str):
-        """保存结果到 JSON 文件"""
+        """Save benchmark results to JSON."""
         results = self.get_results()
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         with open(filepath, 'w') as f:
             json.dump(results, f, indent=2)
         print(f"Results saved to {filepath}")
-    
+
     def print_summary(self):
-        """打印摘要"""
+        """Print a short benchmark summary."""
         results = self.get_results()
         print("\n" + "=" * 50)
         print("Python Performance Benchmark Results")
         print("=" * 50)
-        
+
         timing = results["timing"]
         print(f"\n[Timing (ms)]")
         print(f"  Loop Time:      mean={timing['loop_time_ms']['mean']:.3f}, "
@@ -155,17 +155,16 @@ class PerformanceMonitor:
               f"max={timing['encoder_time_ms']['max']:.3f}")
         print(f"    - Actor:      mean={timing['actor_time_ms']['mean']:.3f}, "
               f"max={timing['actor_time_ms']['max']:.3f}")
-        
+
         cq = results["control_quality"]
         print(f"\n[Control Quality]")
         print(f"  Mean Tracking Error: {cq['mean_error']:.6f} rad")
         print(f"  Max Tracking Error:  {cq['max_error']:.6f} rad")
-        
+
         print(f"\nTotal samples: {results['metadata']['total_samples']}")
         print("=" * 50)
 
 
-# ========== 全局监控器实例 ==========
 _monitor: Optional[PerformanceMonitor] = None
 
 def get_monitor() -> PerformanceMonitor:
@@ -176,14 +175,14 @@ def get_monitor() -> PerformanceMonitor:
 
 
 if __name__ == "__main__":
-    # 测试模式
+
     monitor = PerformanceMonitor()
     print("Testing PerformanceMonitor...")
-    
+
     for i in range(100):
         monitor.start_loop()
         time.sleep(0.01)
-        
+
         monitor.start_inference()
         monitor.start_encoder()
         time.sleep(0.003)
@@ -192,12 +191,12 @@ if __name__ == "__main__":
         time.sleep(0.002)
         monitor.end_actor()
         monitor.end_inference()
-        
+
         monitor.end_loop()
-        
+
         target = np.random.randn(12) * 0.1
         actual = target + np.random.randn(12) * 0.01
         monitor.record_control_quality(target, actual)
-    
+
     monitor.print_summary()
     print("\nTest completed!")

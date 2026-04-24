@@ -201,51 +201,31 @@ def export_policy_as_jit_actor(actor_critic, path):
 def export_policy_as_jit_encoder(actor_critic, path):
         os.makedirs(path, exist_ok=True)
         path1 = os.path.join(path, 'encoder_dwaq.pt')
-<<<<<<< HEAD
         model = copy.deepcopy(actor_critic.vae.encoder).to('cpu')
-=======
-        model = copy.deepcopy(actor_critic.encoder).to('cpu')
->>>>>>> temp-local-changes
         print("encoder model",model)
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path1)
 
         path2 = os.path.join(path, 'latent_mu_dwaq.pt')
-<<<<<<< HEAD
         model = copy.deepcopy(actor_critic.vae.latent_mu).to('cpu')
-=======
-        model = copy.deepcopy(actor_critic.encode_mean_latent).to('cpu')
->>>>>>> temp-local-changes
         print("latent mu model",model)
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path2)
 
         path3 = os.path.join(path, 'latent_var_dwaq.pt')
-<<<<<<< HEAD
         model = copy.deepcopy(actor_critic.vae.latent_var).to('cpu')
-=======
-        model = copy.deepcopy(actor_critic.encode_logvar_latent).to('cpu')
->>>>>>> temp-local-changes
         print("latent var model",model)
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path3)
 
         path4 = os.path.join(path, 'vel_mu_dwaq.pt')
-<<<<<<< HEAD
         model = copy.deepcopy(actor_critic.vae.vel_mu).to('cpu')
-=======
-        model = copy.deepcopy(actor_critic.encode_mean_vel).to('cpu')
->>>>>>> temp-local-changes
         print("vel mu model",model)
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path4)
 
         path5 = os.path.join(path, 'vel_var_dwaq.pt')
-<<<<<<< HEAD
         model = copy.deepcopy(actor_critic.vae.vel_var).to('cpu')
-=======
-        model = copy.deepcopy(actor_critic.encode_logvar_vel).to('cpu')
->>>>>>> temp-local-changes
         print("vel var model",model)
         traced_script_module = torch.jit.script(model)
         traced_script_module.save(path5)

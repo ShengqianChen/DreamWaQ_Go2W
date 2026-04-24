@@ -3,29 +3,28 @@ import torch
 from torch.distributions import Normal
 from torch.nn import functional as F
 
-# 实现estimator的文件
 
 class VAE(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  num_obs,
                  num_history,
-                 num_latent, 
+                 num_latent,
                  activation = 'elu',
                  decoder_hidden_dims = [64, 128],
                  sigma_min = 0.0,
-                 sigma_max = 5.0): # 默认网络设置为DreamWaQ论文中的网络架构
+                 sigma_max = 5.0):
         super(VAE, self).__init__()
         self.num_obs = num_obs
         self.num_history = num_history
         self.num_latent = num_latent
         self.sigma_min = sigma_min
-        self.sigma_max = sigma_max 
+        self.sigma_max = sigma_max
 
         # Build Encoder
         self.encoder = MLPHistoryEncoder(
             num_obs = num_obs,
             num_history = num_history,
-            num_latent = num_latent * 4, # 加宽为4倍
+            num_latent = num_latent * 4,
             activation = activation,
             adaptation_module_branch_hidden_dims=[128],
         )
@@ -51,19 +50,19 @@ class VAE(nn.Module):
                 modules.append(nn.Linear(decoder_hidden_dims[l],decoder_hidden_dims[l + 1]))
                 modules.append(activation_fn)
         self.decoder = nn.Sequential(*modules)
-    
+
     def encode(self,obs_history):
         encoded = self.encoder(obs_history)
         latent_mu = self.latent_mu(encoded)
         latent_var = self.latent_var(encoded)
         vel_mu = self.vel_mu(encoded)
         vel_var = self.vel_var(encoded)
-        
+
         # Apply constraints directly to logvar to ensure sigma stays within bounds
         latent_var = self._constrain_logvar(latent_var)
         vel_var = self._constrain_logvar(vel_var)
-        
-        return [latent_mu, latent_var, vel_mu, vel_var] # 隐变量，线速度变量
+
+        return [latent_mu, latent_var, vel_mu, vel_var]
 
     def decode(self,z,v):
         input = torch.cat([z,v], dim = 1)
@@ -75,15 +74,15 @@ class VAE(nn.Module):
         z = self.reparameterize(latent_mu, latent_var, self.sigma_min, self.sigma_max)
         vel = self.reparameterize(vel_mu, vel_var, self.sigma_min, self.sigma_max)
         return [z,vel],[latent_mu, latent_var, vel_mu, vel_var]
-    
+
     def _constrain_logvar(self, logvar: torch.Tensor) -> torch.Tensor:
         """
         Constrain logvar to ensure sigma stays within [sigma_min, sigma_max] bounds.
         This is applied directly during encoding to ensure sigma is always bounded.
-        
+
         Args:
             logvar: Log variance tensor
-            
+
         Returns:
             Constrained logvar tensor
         """
@@ -91,14 +90,14 @@ class VAE(nn.Module):
         sigma = torch.exp(0.5 * logvar)
         sigma_constrained = torch.clamp(sigma, min=self.sigma_min, max=self.sigma_max)
         logvar_constrained = 2 * torch.log(sigma_constrained + 1e-8)  # Add small epsilon for numerical stability
-        
+
         return logvar_constrained
-    
-    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor, 
+
+    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor,
                       sigma_min: float = 0.0, sigma_max: float = 5.0) -> torch.Tensor:
         """
         Reparameterization trick. Note: logvar is already constrained in encode().
-        
+
         :param mu: (Tensor) Mean of the latent Gaussian
         :param logvar: (Tensor) Log variance of the latent Gaussian (already constrained)
         :param sigma_min: (float) Minimum allowed standard deviation (for compatibility)
@@ -108,30 +107,26 @@ class VAE(nn.Module):
         sigma = torch.exp(0.5 * logvar)
         # Sample from standard normal distribution
         eps = torch.randn_like(sigma)
-        
+
         # Reparameterization: z = μ + σ * ε
         return eps * sigma + mu
-      
+
     def loss_fn(self, obs_history, next_obs, vel_target, kld_weight = 1.0):
         estimation, latent_params = self.forward(obs_history)
         z, v = estimation
-        latent_mu, latent_var, vel_mu, vel_var = latent_params 
-        
+        latent_mu, latent_var, vel_mu, vel_var = latent_params
+
         assert not torch.isnan(vel_target).any(), "vel_target contains NaN values"
         assert not torch.isinf(vel_target).any(), "vel_target contains Inf values"
 
         # Reconstruction next_obs loss
-        recons = self.decode(z,vel_target) # 这里传的是实际速度而不是估计出来的速度 为了让z和速度预测解耦 更好地学到z
-<<<<<<< HEAD
+        recons = self.decode(z,vel_target)
         next_obs_without_command = next_obs.clone()
         next_obs_without_command[:, 6:9] = 0
         recons_loss = F.mse_loss(recons, next_obs_without_command, reduction='none').mean(-1)
-=======
-        recons_loss = F.mse_loss(recons, next_obs, reduction='none').mean(-1)
->>>>>>> temp-local-changes
 
         # Supervised loss
-        vel_loss = F.mse_loss(v, vel_target, reduction='none').mean(-1) # 预测线速度的loss
+        vel_loss = F.mse_loss(v, vel_target, reduction='none').mean(-1)
 
         # KL divergence loss (logvar is already constrained in encode())
         kld_loss = -0.5 * torch.sum(1 + latent_var - latent_mu ** 2 - latent_var.exp(), dim=1)
@@ -143,31 +138,31 @@ class VAE(nn.Module):
             'vel_loss': vel_loss,
             'kld_loss': kld_loss,
         }
-    
-    
+
+
     def sample(self,obs_history):
         estimation, _ = self.forward(obs_history)
         return estimation
-    
+
     def inference(self,obs_history):
         _, latent_params = self.forward(obs_history)
         latent_mu, latent_var, vel_mu, vel_var = latent_params
         return [latent_mu, vel_mu]
-    
+
     def get_constrained_latent_params(self, obs_history):
         """
         Get the constrained latent parameters for monitoring and debugging.
         Note: logvar is already constrained in encode(), so sigma is guaranteed to be in bounds.
-        
+
         Returns:
             dict: Dictionary containing constrained mean and std for both latent and velocity
         """
         latent_mu, latent_var, vel_mu, vel_var = self.encode(obs_history)
-        
+
         # logvar is already constrained, so sigma is guaranteed to be in bounds
         latent_sigma = torch.exp(0.5 * latent_var)
         vel_sigma = torch.exp(0.5 * vel_var)
-        
+
         return {
             'latent_mu': latent_mu,
             'latent_sigma': latent_sigma,
@@ -179,12 +174,12 @@ class VAE(nn.Module):
 
 class MLPHistoryEncoder(nn.Module):
 
-    def __init__(self, 
+    def __init__(self,
                  num_obs,
                  num_history,
                  num_latent,
                  activation = 'elu',
-                 adaptation_module_branch_hidden_dims = [128],): #默认设置为DreamWaQ论文设置 csq 25/9/4
+                 adaptation_module_branch_hidden_dims = [128],):
         super(MLPHistoryEncoder, self).__init__()
         self.num_obs = num_obs
         self.num_history = num_history

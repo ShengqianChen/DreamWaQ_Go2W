@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import torch  
+import torch
 import torch.nn as nn
 from torch.distributions import Normal
 
@@ -8,14 +8,14 @@ from .estimator import VAE
 
 class ActorCritic_DWAQ(nn.Module):
     def __init__(
-        self, 
+        self,
         num_env_obs,
-        num_actor_obs, 
-        num_critic_obs, 
-        num_actions, 
-        num_history, 
-        num_latent, 
-        activation="elu", 
+        num_actor_obs,
+        num_critic_obs,
+        num_actions,
+        num_history,
+        num_latent,
+        activation="elu",
         init_noise_std=1.0,
         vae_sigma_min=0.0,
         vae_sigma_max=5.0,
@@ -67,7 +67,7 @@ class ActorCritic_DWAQ(nn.Module):
         #     self.activation,
         #     nn.Linear(128,73)
         # )
-        # 论文中的VAE架构，封装之后保存原本实现 csq 25/9/4   
+
 
         # VAE with constrained reparameterization
         self.vae = VAE(
@@ -79,14 +79,14 @@ class ActorCritic_DWAQ(nn.Module):
             sigma_min = vae_sigma_min,
             sigma_max = vae_sigma_max
         )
-  
+
         print(f"Actor MLP:", {self.actor})
         print(f"Critic MLP", {self.critic})
         print(f"VAE MLP", self.vae)
 
         self.std = nn.Parameter(init_noise_std * torch.ones(num_actions))
         self.distribution = None
-        
+
         Normal.set_default_validate_args = False
 
     @staticmethod
@@ -102,13 +102,13 @@ class ActorCritic_DWAQ(nn.Module):
 
     def forward(self):
         raise NotImplementedError
-    
+
     # def reparameterise(self,mean,logvar):
     #     var = torch.exp(logvar*0.5)
     #     code_temp = torch.randn_like(var)
     #     code = mean + var*code_temp
     #     return code
-    
+
     # def cenet_forward(self,obs_history):
     #     distribution = self.encoder(obs_history)
     #     mean_latent = self.encode_mean_latent(distribution)
@@ -121,7 +121,7 @@ class ActorCritic_DWAQ(nn.Module):
     #     code = torch.cat((code_vel,code_latent),dim=-1)
     #     decode = self.decoder(code)
     #     return code,code_vel,decode,mean_vel,logvar_vel,mean_latent,logvar_latent
-    # 未封装之前的写法 csq 25/9/4
+
 
     @property
     def action_mean(self):
@@ -166,14 +166,14 @@ class ActorCritic_DWAQ(nn.Module):
     def evaluate(self, critic_observations, **kwargs):
         value = self.critic(critic_observations)
         return value
-    
+
     def get_vae_constraint_info(self, obs_history):
         """
         Get information about VAE constraint usage for monitoring.
-        
+
         Args:
             obs_history: Observation history tensor
-            
+
         Returns:
             dict: Dictionary containing constraint statistics
         """

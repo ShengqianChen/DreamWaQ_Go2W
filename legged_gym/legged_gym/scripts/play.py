@@ -1,10 +1,9 @@
 import os
 import sys  
-<<<<<<< HEAD
-sys.path.append("/root/DreamWaQ_Go2W/legged_gym")
-=======
-sys.path.append("/home/csq/DreamWaQ/legged_gym")
->>>>>>> temp-local-changes
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 import matplotlib
 import isaacgym
 from legged_gym import LEGGED_GYM_ROOT_DIR

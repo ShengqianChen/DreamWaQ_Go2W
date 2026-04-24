@@ -1,6 +1,6 @@
 import struct
 
-# 用于映射远程遥控器上的按键
+
 class KeyMap:
     R1 = 0
     L1 = 1
@@ -19,14 +19,14 @@ class KeyMap:
     down = 14
     left = 15
 
-# 解析远程遥控器的输入数据
+
 class RemoteController:
     def __init__(self):
         self.lx = 0
         self.ly = 0
         self.rx = 0
-        self.ry = 0 # 左摇杆和右摇杆的x和y轴位置
-        self.button = [0] * 16 # 存储每个按键的状态，0为未按下，1为按下
+        self.ry = 0
+        self.button = [0] * 16
 
     def set(self, data):
         # wireless_remote

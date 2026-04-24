@@ -90,37 +90,22 @@ class LeggedRobotCfg(BaseConfig):
         thickness = 0.01
 
     class domain_rand:
-        rand_interval_s = 4
+        rand_interval_s = 8
         randomize_friction = True
-<<<<<<< HEAD
-        friction_range = [0.125, 1.2]
+        friction_range = [0.25, 1.25]
         randomize_base_mass = True
         added_mass_range = [-1., 2.]
         push_robots = True
-=======
-        friction_range = [0.2, 1.25]
-        randomize_base_mass = True
-        added_mass_range = [-1., 2.]
-        push_robots = False
->>>>>>> temp-local-changes
         push_interval_s = 15
         max_push_vel_xy = 1.
         randomize_com_displacement = True
         com_displacement_range = [-0.05, 0.05]
         randomize_motor_strength = True
-<<<<<<< HEAD
-        motor_strength_range = [0.8, 1.2]
-        randomize_Kp_factor = True
-        Kp_factor_range = [0.8, 1.2]
-        randomize_Kd_factor = True
-        Kd_factor_range = [0.8, 1.2]
-=======
         motor_strength_range = [0.9, 1.1]
         randomize_Kp_factor = True
         Kp_factor_range = [0.9, 1.1]
         randomize_Kd_factor = True
         Kd_factor_range = [0.9, 1.1]
->>>>>>> temp-local-changes
 
     class rewards:
         class scales:
@@ -129,37 +114,21 @@ class LeggedRobotCfg(BaseConfig):
             tracking_ang_vel = 0.5
             lin_vel_z = -2.0
             ang_vel_xy = -0.05
-<<<<<<< HEAD
             # orientation = -0.2
             # torques = -0.00001
             # dof_vel = -1e-7
             dof_acc = -2.5e-7
             # base_height = -1.0 
             # feet_air_time =  0.1
-=======
-            orientation = -0.2
-            # torques = -0.00001
-            # dof_vel = -1e-7
-            dof_acc = -2.5e-7
-            base_height = -1.0 
-            feet_air_time =  0.1
->>>>>>> temp-local-changes
             collision = -0.1
             # stumble = -0.01 
             action_rate = -0.01
             # stand_still = -0.01
 
-<<<<<<< HEAD
             # joint_power=-2e-5
             # smoothness=-0.01
             # feet_clearance=-0.01
             # power_distribution=-10e-6
-=======
-            joint_power=-2e-5
-            # smoothness=-0.01
-            # feet_clearance=-0.01
-            power_distribution=-10e-6
->>>>>>> temp-local-changes
             # feet_clearance = -0.01
 
             
@@ -227,7 +196,7 @@ class LeggedRobotCfgPPO(BaseConfig):
     runner_class_name = 'OnPolicyRunner'
     class policy:
         init_noise_std = 1.0
-        #actor_hidden_dims = [512, 256, 128]
+        # actor_hidden_dims = [512, 256, 128]
         # critic_hidden_dims = [512, 256, 128]
         activation = 'elu' # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
         # only for 'ActorCriticRecurrent':
@@ -243,7 +212,7 @@ class LeggedRobotCfgPPO(BaseConfig):
         entropy_coef = 0.01
         num_learning_epochs = 5
         num_mini_batches = 4 # mini batch size = num_envs*nsteps / nminibatches
-        learning_rate = 5.e-4 # 1.e-3
+        learning_rate = 1.e-3 # 1.e-3
         schedule = 'adaptive' # could be adaptive, fixed
         gamma = 0.99
         lam = 0.95

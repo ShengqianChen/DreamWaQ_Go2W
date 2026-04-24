@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
@@ -27,12 +27,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Copyright (c) 2021 ETH Zurich, Nikita Rudin
-  
+
 import time
 import os
 from collections import deque
 import statistics
-  
+
 from torch.utils.tensorboard import SummaryWriter
 import torch
 
@@ -55,12 +55,12 @@ class OnPolicyRunner:
         self.device = device
         self.env = env
         if self.env.num_privileged_obs is not None:
-            num_critic_obs = self.env.num_privileged_obs 
+            num_critic_obs = self.env.num_privileged_obs
         else:
             num_critic_obs = self.env.num_obs
         cenet_in_dim = self.env.num_obs_hist * self.env.num_obs
-        num_latent = 16 # 隐变量数量 csq 25/9/4
-        num_hist = 5 # 历史obs区间大小 csq 25/9/4 
+        num_latent = 16
+        num_hist = 5
         actor_critic_class = eval(self.cfg["policy_class_name"]) # ActorCritic
         actor_critic: ActorCritic_DWAQ = actor_critic_class(self.env.num_obs,
                                                         self.env.num_obs + num_latent + 3,
@@ -86,12 +86,12 @@ class OnPolicyRunner:
 
         _, _, _, _ = self.env.reset()
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!RESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESETRESET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    
+
     def learn(self, num_learning_iterations, init_at_random_ep_len=False):
         # initialize writer
         if self.log_dir is not None and self.writer is None:
             self.writer = SummaryWriter(log_dir=self.log_dir, flush_secs=10)
-            
+
         if init_at_random_ep_len:
             self.env.episode_length_buf = torch.randint_like(self.env.episode_length_buf, high=int(self.env.max_episode_length))
         obs,obs_hist = self.env.get_observations()
@@ -124,14 +124,14 @@ class OnPolicyRunner:
             # Rollout
             with torch.inference_mode():
                 for i in range(self.num_steps_per_env):
-                    
+
                     actions = self.alg.act(obs, critic_obs,prev_critic_obs,obs_hist)
                     obs, privileged_obs, prev_privileged_obs, obs_hist, rewards, dones, infos = self.env.step(actions)
                     critic_obs = privileged_obs if privileged_obs is not None else obs
                     prev_critic_obs = prev_privileged_obs
                     obs, critic_obs, prev_critic_obs, obs_hist, rewards, dones = obs.to(self.device), critic_obs.to(self.device), prev_critic_obs.to(self.device), obs_hist.to(self.device), rewards.to(self.device), dones.to(self.device)
                     self.alg.process_env_step(rewards, dones, infos)
-                    
+
                     if self.log_dir is not None:
                         # Book keeping
                         if 'episode' in infos:
@@ -150,10 +150,10 @@ class OnPolicyRunner:
                 # Learning step
                 start = stop
                 self.alg.compute_returns(critic_obs)
-            
+
             mean_value_loss, mean_surrogate_loss, mean_autoenc_loss,\
                   mean_entropy_loss, mean_kld_loss, mean_vel_loss, mean_recons_loss = self.alg.update()
-            
+
             stop = time.time()
             learn_time = stop - start
 
@@ -162,7 +162,7 @@ class OnPolicyRunner:
             if it % self.save_interval == 0:
                 self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(it)))
             ep_infos.clear()
-        
+
         self.current_learning_iteration += num_learning_iterations
 
         self.save(os.path.join(self.log_dir, 'model_{}.pt'.format(self.current_learning_iteration)))
