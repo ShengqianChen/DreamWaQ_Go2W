@@ -282,7 +282,7 @@ class Controller:
 
         print(vel)
         print(latent)
-        code = torch.cat((vel, latent), dim = -1)
+        code = torch.cat((latent, vel), dim = -1)
         print(code)
         tmpp = torch.from_numpy(self.obs)
         obs_all = torch.cat((code, tmpp), dim = -1)
